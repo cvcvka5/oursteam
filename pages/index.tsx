@@ -2,7 +2,7 @@
 // Module Imports
 import { 
   TextField, Grid, Stack, Divider, Chip,
-  Autocomplete, ToggleButton
+  Autocomplete, ToggleButton, getFormControlLabelUtilityClasses
 } from "@mui/material";
 import { ViewCompact } from "@mui/icons-material";
 import { LoadingButton } from "@mui/lab";
@@ -19,6 +19,7 @@ import type ISortBy from "../types/ISortBy";
 // Component Imports
 import GameCard from "../components/GameCard";
 import ourSteamLogo from "../public/oursteam.png";
+import IError from "../types/IError";
 /*---*/
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
   
   // Fetching states.
   const [games, setGames] = useState<ISteamGame[]>([]);
+  const [gotError, setGotError] = useState<IError>(null!);
   const [fetching, setFetching] = useState<boolean>(false);
   
   // Const option states.
@@ -39,8 +41,15 @@ export default function App() {
     setFetching(true);
     fetch(`/api/games/common?id=${yourID}&id=${friendID}`)
       .then(res => res.json())
-      .then((fetchedGames: ISteamGame[]) => {
-        setGames(fetchedGames);
+      .then((data: ISteamGame[] | IError) => {
+        if (Object.keys(data).includes("Error")) {
+          setGotError(data as IError);
+          setGames([]);
+        }
+        else {
+          setGames(data as ISteamGame[]);
+          setGotError(null!)
+        }
         setFetching(false);
       })
   }
@@ -84,7 +93,7 @@ export default function App() {
   return (
     <>
       <Head>
-        <title>OurSteam - Compare !</title>
+        <title>OurSteam - Compare libraries!</title>
 
         <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png"/>
         <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png"/>
@@ -126,6 +135,8 @@ export default function App() {
           sx={{width: 300}}
           value={yourID}
           onChange={e => setYourID(e.target.value)}
+          helperText={gotError && gotError.ErrorAtIndex === 0 ? gotError.Error : ""}
+          error={gotError ? gotError.ErrorAtIndex === 0 : false}
         />
         <TextField
           required
@@ -134,6 +145,8 @@ export default function App() {
           sx={{width: 300}}
           value={friendID}
           onChange={e => setFriendID(e.target.value)}
+          helperText={gotError && gotError.ErrorAtIndex === 1 ? gotError.Error : ""}
+          error={gotError ? gotError.ErrorAtIndex === 1 : false}
         />
         <LoadingButton
           loading={fetching}

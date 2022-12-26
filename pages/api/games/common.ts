@@ -11,10 +11,27 @@ export default async function handler(
     res: NextApiResponse<ISteamGame[] | IError>
 ) {
 
+    
     if (!req.query || !req.query.id || req.query.id.length !== 2) {
         res.status(400).send({"Error": `The query parameters should be: (id[2] = [first id, second id]) `});
         return;
     }
+    
+    if (!req.query.id[0]) {
+        res.status(400).send({
+            Error: "The STEAMID fields are required",
+            ErrorAtIndex: 0
+        });
+        return;
+    }
+    if (!req.query.id[1]) {
+        res.status(400).send({
+            Error: "The STEAMID fields are required",
+            ErrorAtIndex: 1
+        });
+        return;
+    }
+
 
     let isCustomURL1 = !(/^\d+$/.test(req.query.id[0]));
     let isCustomURL2 = !(/^\d+$/.test(req.query.id[1]));
@@ -31,10 +48,11 @@ export default async function handler(
         let games1: ISteamGame[];
         try{
             games1 = data1.gamesList.games[0].game;
+            if (!games1) throw new Error();
         }
         catch {
             res.status(400).send({
-                Error: "The supplied ID must be a STEAM64-ID or a CUSTOM_PROFILE_ID.",
+                Error: "The id must be a valid STEAM-ID.",
                 AlternateError: "The Steam servers might be down.",
                 ErrorAtIndex: 0
             });
@@ -46,20 +64,21 @@ export default async function handler(
         parseString(res2.data, (err, data2) => {
             
             let games2: ISteamGame[];
+            let commongames;
             try{
                 games2 = data2.gamesList.games[0].game;
+                const appids2 = games2.map((game: any) => game.appID[0]);
+                commongames = games1.filter((game: any) => appids2.includes(game.appID[0]));
             }
-            catch {
+            catch(e) {
                 res.status(400).send({
-                    Error: "The supplied ID must be a STEAM64-ID or a CUSTOM_PROFILE_ID.",
+                    Error: "The id must be a valid STEAM-ID.",
                     AlternateError: "The Steam servers might be down.",
                     ErrorAtIndex: 1
                 });
                 return;
+                
             }            
-            
-            const appids2 = games2.map((game: any) => game.appID[0]);
-            const commongames = games1.filter((game: any) => appids2.includes(game.appID[0]));
             res.status(200).json(commongames);
         });
 });
