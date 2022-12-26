@@ -1,0 +1,9 @@
+.GameCard {
+    cursor: pointer;
+    transition: 100ms scale ease-in-out;
+}
+
+.GameCardHover:hover {
+    scale: 1.05;
+}
+
