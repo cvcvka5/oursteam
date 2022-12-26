@@ -84,7 +84,7 @@ export default function App() {
   return (
     <>
       <Head>
-        <title>OurSteam - Compare libraries!</title>
+        <title>OurSteam - Compare !</title>
 
         <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png"/>
         <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png"/>
